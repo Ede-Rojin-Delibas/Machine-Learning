@@ -1,4 +1,4 @@
-#ARABA FİYAT TAHMİNİ : archive.ics.uci.edu(bir sürü veri seti var)
+#CAR PRICE PREDICTION : archive.ics.uci.edu(So many datasets in this site)
 # import inline
 import numpy as np
 import pandas as pd
@@ -9,25 +9,24 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
-# from SMarket import y_train
 import warnings
 warnings.simplefilter(action='ignore',category=Warning)
 df=pd.read_csv('8_Lineer_Regreson_Gercek_Proje/data/Automobile.csv')
-# print(df.head())
-# print(df.info())
-#print(df.describe()) #istatistiksel verileri görme
-# print(df.shape) #(205,26)
-# print(len(df))#toplam gözlem sayısı =205
-# print(df.columns) #toplam sütun sayısı=26
-# print(len(df.describe().columns))#toplam kaç adet numeric sütun var: 26 sütun var,bunun 25 i girdi, 1 i çıktı
-#girdi sütunlarının 15 i sayısal , 10 u kategorik
-#veri önişleme sürecin %80 ini oluşturur
-#her sütun içindeki tekil(unique) veri adedini görelim
-# for col in df.columns:
-#     print(col,df[col].nunique())
-#kategorik olan sütunlar için değerleri görelim
-# for col in df.columns:
-#     values=[]
+print(df.head())
+print(df.info())
+print(df.describe()) #For see the statistical datas
+print(df.shape) #(205,26)
+print(len(df))#total observation number=205
+print(df.columns) #total colon number=26
+print(len(df.describe().columns)) #How many total numerical columns do we have?
+# In total 26 colon and the 25 of it is input, 1 is output
+#The 15 of input colons are numerical ,10 is categorical
+#Let's see the number of unique data in each column.
+for col in df.columns:
+    print(col,df[col].nunique())
+#The values for categorical colons
+for col in df.columns:
+    values=[]
 #     #kategorik
 #     if col not in df.describe().columns:
 #         for val in df[col].unique():
