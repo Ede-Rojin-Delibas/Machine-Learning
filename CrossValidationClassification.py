@@ -1,4 +1,4 @@
-#K-Fold Cross Validation - Classification Örneği
+#K-Fold Cross Validation - Classification Instance
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold,StratifiedKFold,cross_val_score
@@ -7,61 +7,56 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 train_data=pd.read_csv('14_Model_Secimi/data/titanic/train.csv')
 # print(train_data.head())
-#eksik verili satırları sil
 train_data.dropna(axis=0,subset=['Survived'],inplace=True)
-#sonuç değişkeni
 y=train_data.Survived
 # print(y)
-#train datadan y yi çıkar
+#drop y from train data
 train_data.drop(['Survived'],axis=1,inplace=True)
-#içinde null değerler olan age sütununu sil
+#drop age, it has null variables
 train_data.drop(['Age'],axis=1,inplace=True)
-#sadece numerik sütunları seç
+#just choose numerical columns
 numeric_cols=[cname for cname in train_data.columns if train_data[cname].dtype in ['int64','float64'] ]
 X=train_data[numeric_cols].copy()
 # print(X.head())
-# print("Train datanın şekli: {} ve sonuç değişkenin şekli :{}".format(X.shape,y.shape))
-#ilk 5 train datasını göster
+print("Train datanın şekli: {} ve sonuç değişkenin şekli :{}".format(X.shape,y.shape))
 # print(pd.concat([X,y],axis=1).head())
-#stratified kfold ile model
+#model with stratified kfold
 kf=StratifiedKFold(n_splits=5,random_state=42,shuffle=True)
 cnt=1
-#split ile indexleri
-# for train_index,test_index in kf.split(X,y):
-#     print(f'Fold:{cnt},Train set:{len(train_index)},Test set:{len(test_index)}')
-#     cnt+=1
-#cross_val_score logistic regresyon modeliyle çalışır
-#CV skorunu alalım
+for train_index,test_index in kf.split(X,y):
+    print(f'Fold:{cnt},Train set:{len(train_index)},Test set:{len(test_index)}')
+    cnt+=1
+#run the cross_val_score logistic regresyon model
+#take CV score
 #skorlama yöntemi -> accuracy
 score=cross_val_score(LogisticRegression(random_state=42),X,y,cv=kf,scoring="accuracy")
 #print(f"Her bir fold'un skoru:{score}")
 #print(f"Ortalama Skoru:{'{:.2f}'.format(score.mean())}") #0.68
-#HYPERPARAMETER TUNING:Değişik parametreler deneyerek hangi solver'in (çözüm algoritmasının)en iyi olduğunu bulalım
-#logistic regresyonun bütün solver larını deneyelim
+#HYPERPARAMETER TUNING: Let's find out which solver (solution algorithm) is the best by trying different parameters.
 solvers=['newton-cg','lbfgs','liblinear','sag','saga']
-#her bir solver için ortalama score hesaplayalım
-#max_iter i 4000 verdik
-# for solver in solvers:
-#     score=cross_val_score(LogisticRegression(solver=solver,max_iter=4000,random_state=42),X,y,cv=kf,scoring="accuracy")
-#     print(f"Ortalama Skor:({solver}):{'{:.3f}'.format(score.mean())}")
-#en iyi sonuç veren newton ,lbfgs ve liblinear
+#mean score for each solver
+#make max_iter 4000
+for solver in solvers:
+    score=cross_val_score(LogisticRegression(solver=solver,max_iter=4000,random_state=42),X,y,cv=kf,scoring="accuracy")
+    print(f"Ortalama Skor:({solver}):{'{:.3f}'.format(score.mean())}")
+#best result is on newton ,lbfgs and liblinear
 ## GRID SEARCH ##
 X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2 ,random_state=42)
 # print(X_train.shape)
 # print(y_train.shape)
 # print(X_test.shape)
 # print(y_test.shape)
-# knn ile çözelim
-#rastgele olarak k=3 alalım
+#Let's solve with knn
+#take k=3 (randomly)
 neigh=KNeighborsClassifier(n_neighbors=3)
 neigh.fit(X_train,y_train)
-#tahmin yapalım
+
 y_pred=neigh.predict(X_test)
 # print(y_pred)
-#tahmin olasılıkları 0.5 in üstü ise o sınıf seçilir
+#if probability of prediction is above 0.5 then that class will choose
 y_predict_proba=neigh.predict_proba(X_test)
 # print(y_predict_proba)
-#tahmin kalitesi için F1 skoruna bakalım
+#Let's look prediction quality for F1 score
 from sklearn.metrics import confusion_matrix, accuracy_score,f1_score
 conf_mat=confusion_matrix(y_test,y_pred)
 # print(conf_mat)
@@ -80,15 +75,15 @@ gsc=GridSearchCV(estimator=KNeighborsClassifier(),
                  verbose=1, #sonuçları bana yaz demek
                  scoring='accuracy')
 gsc.fit(X_train,y_train)
-#grid search sonuçları
+#grid search results
 # print(f"en iyi Hyperparameter:{gsc.best_params_}") #13
 # print(f"en iyi score:{gsc.best_score_}") # 0.630
-#detaylı sonuçlar
+#results in detail
 # print("Detaylı GridSearchCV sonucu:")
 gsc_result=pd.DataFrame(gsc.cv_results_).sort_values('mean_test_score',ascending=False)
-#daha sade yazalım
+#to see it basically
 # print(gsc_result[['param_n_neighbors','mean_test_score','rank_test_score']])
-#en iyi hyperparameter değeri olan k=13 için 1 kere çalıştıralım
+#Let's run the best hyperparameter values which is k=13 for once.
 neigh_final=KNeighborsClassifier(n_neighbors=13)
 neigh_final.fit(X_train,y_train)
 y_pred_final=neigh_final.predict(X_test)
@@ -100,8 +95,8 @@ from sklearn.model_selection import StratifiedKFold,cross_val_score
 kf=StratifiedKFold(n_splits=5,random_state=42,shuffle=True)
 score=cross_val_score(KNeighborsClassifier(),X_train,y_train,cv=kf,scoring="accuracy")
 # print(score.mean()) #0.6333
-#random search ile aynı işlemler
-#n_iter -> kaç adet parametre olacak
+#Do the same treatment for random search
+#n_iter -> how many parametre will be?
 rsc=RandomizedSearchCV(estimator=KNeighborsClassifier(),
                        param_distributions=parameters,
                        n_iter=3,

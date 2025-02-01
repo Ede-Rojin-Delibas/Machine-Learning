@@ -10,32 +10,25 @@ df=df.drop('duration',axis=1)
 # print(df.shape) #4119,20
 col_names=df.columns
 #print(col_names)
-#target variable ın dağılımı
 #print(df['y'].value_counts())
 '''no:3668
    yes:451'''
-#sınıfların yes-no yüzde dağılımları
-#no: %89 ; yes: %11 -> veri inbalanced
-# print(df.info())
-#eksik data kontrolü
-# print(df.isnull().sum())
-#toplam kolon sayısı
+#yes-no percentage distributions of classes
+#no: %89 ; yes: %11 -> data is inbalanced
+print(df.info())
+print(df.isnull().sum())
 # print(len(df.columns)) # 20
-#numerik kolonların adedi
 #print(df.select_dtypes(include=['int64','float64']).shape) #(4119,9)
-#numerik kolonlar
 numeric_cols=df.select_dtypes(include=['int64','float64']).columns
 #print(numeric_cols)
-#kategorik kolonların (object) adedi
-#print(df.select_dtypes(include=['object']).shape) #(4119,11)
+print(df.select_dtypes(include=['object']).shape) #(4119,11)
 cat_cols=df.select_dtypes(include='object').columns
 #print(cat_cols)
-#verinin özeti:4119 adet veri:19 adet değişken, 9 adet numerik değişken, 10 adet kategorik değişken
-#numerik değişkenlerin dağılımı
-# df.hist(column=numeric_cols,figsize=(10,10))
-# plt.subplots_adjust(wspace=0.5,hspace=0.5)
+#Summary of data: 4119 data: 19 variables, 9 numerical variables, 10 categorical variables
+df.hist(column=numeric_cols,figsize=(10,10))
+plt.subplots_adjust(wspace=0.5,hspace=0.5)
 # plt.show()
-#ordinal değişkenler
+#ordinal variables
 df['poutcome'].value_counts()
 df['poutcome']=df['poutcome'].map({'failure':-1,'nonexistent':0,'success':1})
 #print(df['poutcome'].value_counts())
@@ -44,11 +37,12 @@ df['default']=df['default'].map({'yes':-1,'unknown':0,'no':1})
 # print(df['default'].value_counts())
 df['housing']=df['housing'].map({'yes':-1,'unknown':0,'no':1})
 df['loan']=df['loan'].map({'yes':-1,'unknown':0,'no':1})
-#Nominal değişkenler:poutcome,default,housing,loan dışındakiler nominaldir:sıranın bir önemi yok ve one hot encoding yapılacaktır
+#Nominal variables: Except for poutcome, default, housing, loan, they are nominal:
+# the order does not matter and one hot encoding will be done
 nominal=['job','marital','education','contact','month','day_of_week']
 df=pd.get_dummies(df,columns=nominal)
 #print(df.shape) #ohe sonrası:(4119,55)
-#y nin encode edilmesi
+#encoding y
 df['y']=df['y'].map({'yes':1,'no':0})
 # print(df.head())
 X=df.drop(['y'],axis=1)
@@ -79,48 +73,47 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 #ROC-AUC
 from sklearn.metrics import roc_auc_score
-#SVC yi default hyperparameter lar ile başlat
-# svc=SVC()
-#classifier ı fit et
-# svc.fit(X_train,y_train)
-# y_pred=svc.predict(X_test)
-#accuracy yi yazdır
-#print('Default hyperparameterlar ile accuracy score : {0:0.2f}'.format(accuracy_score(y_test,y_pred))) # 0.91
+#Initialize SVC with default hyperparameters
+svc=SVC()
+#fit the classifier
+svc.fit(X_train,y_train)
+y_pred=svc.predict(X_test)
+print('Default hyperparameterlar ile accuracy score : {0:0.2f}'.format(accuracy_score(y_test,y_pred))) # 0.91
 #classification report
-#print('Classification report: {} '.format(classification_report(y_test,y_pred)))
-#ROC-AUC:c nin default değeri 1
-#print('Default Hyperparameter ile ROC-AUC Score: {0:0.2f}'.format(roc_auc_score(y_test,y_pred))) #0.58
+print('Classification report: {} '.format(classification_report(y_test,y_pred)))
+#ROC-AUC:default value of c is 1
+print('Default Hyperparameter ile ROC-AUC Score: {0:0.2f}'.format(roc_auc_score(y_test,y_pred))) #0.58
 #SVM with RBF Kernel & C=100
-# svc=SVC(C=100.0)
-# svc.fit(X_train,y_train)
-# y_pred=svc.predict(X_test)
-#print("RBF kernel ve C=100 ile ROC-AUC Score: {0:0.2f}".format(roc_auc_score(y_test,y_pred))) #0.65
-#yine çok güvenilir değil grid search ile hyperparameter tuning yapılmalı
-#en iyi hyperparameterları bulmanın yolu:GridSearch Cross Validation
+svc=SVC(C=100.0)
+svc.fit(X_train,y_train)
+y_pred=svc.predict(X_test)
+print("RBF kernel ve C=100 ile ROC-AUC Score: {0:0.2f}".format(roc_auc_score(y_test,y_pred))) #0.65
+#Again, it is not very reliable, hyperparameter tuning should be done with grid search.
+#The best way of finding hyperparameters:GridSearch Cross Validation
 from sklearn.model_selection import GridSearchCV
 svc_grid=SVC()
 parameters=[{'C':[0.1,1,10,100,1000],'gamma':['scale','auto',0.001,0.01,0.1,0.9],'kernel':['rbf']}]
-#n_jobs=4 -> 4 işlemci core unda da kullanılsın
-#scoring =>'balanced_accuracy', 'f1','precision','recall','roc_auc' şeklinde de denenebilir
-#veri inbalanced olduğu için balanced_accuracy denendi.
+#n_jobs=4 -> 4 CPU core will use
+#scoring =>'balanced_accuracy', 'f1','precision','recall','roc_auc'
+#Data is inbalanced so, balanced_accuracy.
 grid_search=GridSearchCV(estimator=svc_grid,param_grid=parameters,
                          scoring='balanced_accuracy',
                          cv=5,n_jobs=4,verbose=1)
 grid_search.fit(X_train,y_train)
-#print("GridSearch CV best score:{:.4f}\n\n".format(grid_search.best_score_)) #0.6430
-#print("GridSearch CV best params:{}\n\n".format(grid_search.best_params_))
+print("GridSearch CV best score:{:.4f}\n\n".format(grid_search.best_score_)) #0.6430
+print("GridSearch CV best params:{}\n\n".format(grid_search.best_params_))
 #c=1000, gamma=0.001, kernel=rbf
-#print("GridSearch CV best estimator:{}\n\n".format(grid_search.best_estimator_))
+print("GridSearch CV best estimator:{}\n\n".format(grid_search.best_estimator_))
 #c=1000, gamma=0.001
 
-## en iyi sonucu veren parametreler ##
+## Parameters that give the best results ##
 svc_best=SVC(C=1000.0,gamma=0.001,kernel='rbf')
 svc_best.fit(X_train,y_train)
 y_pred_best=svc_best.predict(X_test)
 #ROC- AUC
-#print('ROC - AUC score:{:.2f}'.format(roc_auc_score(y_test,y_pred_best))) #0.62
-# print(svc_best.get_params())
-#sonuçlar:{'C': 1000.0, 'break_ties': False, 'cache_size': 200, 'class_weight': None, 'coef0': 0.0,
+print('ROC - AUC score:{:.2f}'.format(roc_auc_score(y_test,y_pred_best))) #0.62
+print(svc_best.get_params())
+#Results:{'C': 1000.0, 'break_ties': False, 'cache_size': 200, 'class_weight': None, 'coef0': 0.0,
 #'decision_function_shape': 'ovr', 'degree': 3, 'gamma': 0.001, 'kernel': 'rbf', 'max_iter': -1,
 #'probability': False, 'random_state': None, 'shrinking': True, 'tol': 0.001, 'verbose': False}
 

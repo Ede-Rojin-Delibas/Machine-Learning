@@ -495,20 +495,19 @@ plt.ylabel('Predicted WLB')
 plt.title('Hours Worked Per Week vs Predicted WLB(Polynomial Regression)')
 plt.legend()
 # plt.show()
-#Overfitting: Modeliniz muhtemelen verideki gürültüyü de öğrenerek, yeni verilere genelleme yeteneğini
-# kaybetmiştir. Bu durum, yüksek dereceli bir polinom kullanımı veya yetersiz veri miktarı nedeniyle
-# ortaya çıkabilir.
-#oluşan model zayıf ve overfit bu nedenle lasso ve ridge regularization yöntemleri ile biraz düzenlemeler yapılacaktır.
-#Ridge ve Lasso modellerini tanımlama
-ridge=Ridge(alpha=1.0) #alpha düzenleme düzeyini belirler(0 normal regresyon)
+#Overfitting: Your model has probably also learned the noise in the data, improving its ability to generalize to new data.
+#lost. This may be due to the use of a high degree polynomial or insufficient amount of data may occur.
+#lost model is weak and overfit.For this reason,I' ll do some regulations with lasso and ridge regularization methods
+#Describe these models
+ridge=Ridge(alpha=1.0) #alpha determines regulation level(0 is normal regression)
 lasso=Lasso(alpha=0.1)
-# #ridge modelini eğitme
+# fitting the ridge model
 ridge.fit(X_train_poly,y_train)
 y_pred_ridge=ridge.predict(X_test_poly)
-# #lasso modelini eğitme
+#fit the lasso model
 lasso.fit(X_train_poly,y_train)
 y_pred_lasso=lasso.predict(X_test_poly)
-#performans değerlendirme
+#evaluating performance
 # print("Ridge:")
 # print("MSE:",mean_squared_error(y_test,y_pred_ridge))
 # print("R2:",r2_score(y_test,y_pred_ridge))
@@ -527,7 +526,7 @@ R2: -0.003915089000497751"""
 Lasso Katsayılar: [-0.00000000e+00  0.00000000e+00 -8.88032422e-06 -9.61284096e-06
  -0.00000000e+00]
  """
-# #ridge ve lasso'nun katsayılarını ve çalışmasını görselleştirme
+# coefficient of ridge and lasso and visualization of their working
 alphas=[0.01,0.1,1,10,100]
 ridge_coefs=[]
 lasso_coefs=[]
@@ -536,7 +535,7 @@ for alpha in alphas:
     lasso=Lasso(alpha=alpha).fit(X_train_poly,y_train)
     ridge_coefs.append(ridge.coef_)
     lasso_coefs.append(lasso.coef_)
-# #Ridge katsayılarını çiz
+# Plot the Ridge coefficients
 plt.figure(figsize=(10,6))
 plt.plot(alphas,ridge_coefs,marker='o')
 plt.xscale('log')
@@ -544,7 +543,7 @@ plt.title("Ridge katsayılarının Düzenleme ile Değişimi")
 plt.xlabel("Alpha (log scale)")
 plt.ylabel("Katsayılar")
 # plt.show()
-# #lasso katsayılarını çiz
+#  Plot the lasso coefficients
 plt.figure(figsize=(10,6))
 plt.plot(alphas,lasso_coefs,marker='x')
 plt.xscale('log')
@@ -552,25 +551,24 @@ plt.title("Lasso katsayılarının düzenleme ile Değişimi")
 plt.xlabel("Alpha (log scale)")
 plt.ylabel("Katsayılar")
 # plt.show()
-#output yorumu: ridge e rağmen modelin performansı iyileşemedi.(MSE) R2 için ridge modeli basit bir ortalam tahmin modeli
-#kadar dahi açıklayıcı değil. Yani, bağımsız değişkenler(girdiler) ile hedef değişken (çıktı) arasındaki ilişki doğrusal
-#regresyon modeliyle yakalanmıyor veya çok zayıf
-#Lasso:lasso MSE açısından ridge modeline göre bir miktar daha iyi bir sonuç veriyor(daha küçük bir hata)
-#r2:lasso'nun r2 skoru Ridge'e kıyasla biraz daha yüksek ancak hala negatif, bu modelin bağımsız değişkenlerle hedef değişken
-# arasında anlamlı bir ilişki kuramadığını gösteriyor.
-#Ridge ve LAsso nun katsayıları: ridge overfitting i engellemiş ancak daha anlamlı bir ilişki öğrenememiş
+#output comment: Despite the ridge, the model's performance could not improve. (MSE) The ridge model for R2 is a simple mean prediction model.
+#It's not even as descriptive as #. That is, the relationship between the independent variables (inputs) and the target variable (output) is linear.
+#not captured by regression model or too weak
+#Lasso:Lasso gives a slightly better result than the ridge model in terms of MSE (with a smaller error).
+#r2:lasso's r2 score is slightly higher than Ridge but still negative
+#Coefficient of Ridge and LAsso:It prevented ridge overfitting but could not learn a more meaningful relationship.
 
 ########## DECISION TREES CLASSIFICATION ############
-#target variable ın dağılımı
+#Distribution of target variable
 # print(df['Work_Life_Balance_Rating'].value_counts())
-# print(df.isnull().sum()) #eksik data kontrolü:eksik verilerin toplam adedi
+# print(df.isnull().sum())
 # print(len(df.columns))#(41)
 # print(df.select_dtypes(include=['int64','float64']).shape) #(5000,7)
 numeric_cols=df.select_dtypes(include=['int64','float64']).columns
 # print(df.select_dtypes(include='object').shape)
 cat_cols=df.select_dtypes(include='object').columns
 # print(cat_cols)
-#numeric değişkenlerin dağılımı
+#Distribution of numeric variables
 df.hist(column=numeric_cols,figsize=(10,10))
 plt.subplots_adjust(hspace=0.5,wspace=0.5)
 # plt.show()
@@ -587,26 +585,25 @@ X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=0)
 #FEATURE SCALING
 cols=X_train.columns
 # print(cols)
-#X_train üzerinde StandardScaler eğiteceğiz.
+#fit the StandardScaler on X_train
 scaler=StandardScaler()
-X_train=scaler.fit_transform(X_train) #bu işlem sonrası X_train bir Numpy array oluyor.
+X_train=scaler.fit_transform(X_train) #X_train is a Numpy array now
 X_test=scaler.transform(X_test)
 # print(type(X_train))
 # print(X_train.shape)
 # print(X_train.head())
 #Decision Tree Classification with gini index
 clf_gini=DecisionTreeClassifier(criterion='gini',max_depth=3,random_state=0)
-clf_gini.fit(X_train,y_train) #modeli fit etme
-#gini index kullanarak oluşturduğumuz model ile tahmin yapalım
+clf_gini.fit(X_train,y_train) #fit the model
+#Making a prediction with our model which is generated with gini index
 y_pred_gini_proba=clf_gini.predict_proba(X_test)
 #ROC-AUC SCORE
 y_pred_gini_score=roc_auc_score(y_test,y_pred_gini_proba,multi_class="ovr")
 # print('Modelin Gini Index ile ROC-AUC skoru: {0:0.4f}'.format(y_pred_gini_score))
-#train ve test ROC-AUC değerlerini karşılaştıralım
+#Comparing train and test ROC-AUC values
 y_pred_train_gini_proba=clf_gini.predict_proba(X_train)
 y_pred_train_gini_score=roc_auc_score(y_train,y_pred_train_gini_proba,multi_class="ovr")
 # print('Modelin gini index ile ROC-AUC Skoru: {0:0.4f}'.format(y_pred_train_gini_score))
-#train ve test skorlarını karşılaştıralım
 # print('Train set skoru:{:.4f}'.format(y_pred_train_gini_score))
 # print('Test set skoru:{:.4f}'.format(y_pred_gini_score))
 """ Train set skoru:0.5476
@@ -614,16 +611,16 @@ y_pred_train_gini_score=roc_auc_score(y_train,y_pred_train_gini_proba,multi_clas
     train=%55
     test=%50
 """
-#decision tree yi görselleştirelim
+#Visualization of decision trees
 plt.figure(figsize=(24,16))
 tree.plot_tree(clf_gini.fit(X_train,y_train))
 # plt.show()
-#Decision Tree Classifier Entropy ile
+#Decision Tree Classifier with Entropy
 clf_ent=DecisionTreeClassifier(criterion='entropy',max_depth=3,random_state=0)
-#modeli fit edelim
+#fit the model
 clf_ent.fit(X_train,y_train)
 y_pred_ent_proba=clf_ent.predict_proba(X_test)
-#ROC-AUC skorunu kontrol edelim
+#ROC-AUC score
 y_pred_ent_score=roc_auc_score(y_test,y_pred_ent_proba,multi_class="ovr")
 # print('Modelin Entropy ile ROC-AUC skoru:{0:0.4f}'.format(y_pred_ent_score))
 y_pred_train_ent_proba=clf_ent.predict_proba(X_train)
@@ -632,14 +629,13 @@ y_pred_train_ent_score=roc_auc_score(y_train,y_pred_train_ent_proba,multi_class=
 """ Modelin Entropy ile ROC-AUC skoru:0.4941 ; %49
     Modelin Entropy ile ROC-AUC skoru:0.5472 ;%50 
     """
-# train ile test skorları
+# train and test scores
 # print('Train set skoru:{:.4f}'.format(y_pred_train_ent_score))
-# print('Test set skoru:{:.4f}'.format(y_pred_ent_score)) #yukarıdaki ile aynı sonuçlar
-#Decision Tree yi görselleştirelim
+# print('Test set skoru:{:.4f}'.format(y_pred_ent_score)) #same results above
 plt.figure(figsize=(24,16))
 tree.plot_tree(clf_ent.fit(X_train,y_train))
 # plt.show()
-#overfit ispatı:gini index ile max depth arttırılır.
+#proof for overfit :Increased max_depth with gini index
 clf_gini=DecisionTreeClassifier(criterion='gini',max_depth=6,random_state=0)
 clf_gini.fit(X_train,y_train)
 y_pred_gini_proba=clf_gini.predict_proba(X_test)
@@ -648,11 +644,10 @@ y_pred_gini_score=roc_auc_score(y_test,y_pred_gini_proba,multi_class="ovr")
 y_pred_train_gini_proba=clf_gini.predict_proba(X_train)
 y_pred_train_gini_score=roc_auc_score(y_train,y_pred_train_gini_proba,multi_class="ovr")
 # print('Modelin gini index ile ROC-AUC Skoru: {0:0.4f}'.format(y_pred_train_gini_score))#0.6310
-########sonuçların yorumlanması
-#train ve test set skorlarını kıyaslayalım
+######## examination of results ########
 # print('Train set skoru:{:.4f}'.format(y_pred_train_gini_score))
 # print('Test set skoru:{:.4f}'.format(y_pred_gini_score))
-#overfit ispatı:gini index ile max depth arttırılır.max_depth=9 yapıldı
+# max_depth=9
 clf_gini=DecisionTreeClassifier(criterion='gini',max_depth=9,random_state=0)
 clf_gini.fit(X_train,y_train)
 y_pred_gini_proba=clf_gini.predict_proba(X_test)
@@ -661,51 +656,43 @@ y_pred_gini_score=roc_auc_score(y_test,y_pred_gini_proba,multi_class="ovr")
 y_pred_train_gini_proba=clf_gini.predict_proba(X_train)
 y_pred_train_gini_score=roc_auc_score(y_train,y_pred_train_gini_proba,multi_class="ovr")
 # print('Modelin gini index ile ROC-AUC Skoru: {0:0.4f}'.format(y_pred_train_gini_score))
-########sonuçların yorumlanması:overfit var gibi
-#train ve test set skorlarını kıyaslayalım
+##### examination of results ##### overfit risk
 # print('Train set skoru:{:.4f}'.format(y_pred_train_gini_score))#0.7802
 # print('Test set skoru:{:.4f}'.format(y_pred_gini_score))#0.5077
-#görselleştirme
+#visualizing
 plt.figure(figsize=(24,16))
 tree.plot_tree(clf_gini.fit(X_train,y_train))
 # plt.show()
 ############### GRADIENT BOOSTING ##############
 df=pd.read_csv('rw_new_data.csv')
 # print(df.shape) #(5000,41)
-# #sütun adları
 col_names=df.columns
 # print(col_names)
-#target variable ın dağılımı
 # print(df['Work_Life_Balance_Rating'].value_counts())
 # print(df.info())
-# print(df.isnull().sum()) #Mental_Health_Condition : 1196,Physical_Activity:1629 veri eksik
+# print(df.isnull().sum()) #Mental_Health_Condition : 1196,Physical_Activity:1629 null data
 df['Mental_Health_Condition'] = df['Mental_Health_Condition'].fillna(df['Mental_Health_Condition'].mode()[0])
 df['Physical_Activity'] = df['Physical_Activity'].fillna(df['Physical_Activity'].mode()[0])
-# print(df.isnull().sum()) #bütün eksik veriler mod ile dolduruldu.
+# print(df.isnull().sum()) #I Filled the null variables with mode
 # print(len(df.columns)) #41
-#numerik sütun adedi
 # print(df.select_dtypes(include=['int64','float64']).shape) #(5000,7)
 numeric_cols=df.select_dtypes(include=['int64','float64']).columns
 # print(numeric_cols)
 cat_cols=df.select_dtypes(include=['object']).columns
 # print(cat_cols)
-#numerik değişkenlerin dağılımı
 df.hist(column=numeric_cols,figsize=(10,10))
 plt.subplots_adjust(wspace=0.5,hspace=0.5)
 # plt.show()
-#feature vector ve target değişkeni
+#feature vector and target variable
 X=df.drop(['Work_Life_Balance_Rating'],axis=1)
 y=df['Work_Life_Balance_Rating']
-# #train test split
 X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=0)
-#X_train ve X_test şekilleri
 # print(X_train.shape) #4000,40
 # print(X_test.shape) #1000,40
 #feature scaling
-#hedef değişken y nin değerlerini sıfır tabanlı yapma(xgboost 0 tabanlı sınıf değerler beklemektedir)
+# make the values of the target variable y zero-based (xgboost expects 0-based class values)
 y_train=y_train-1
 y_test=y_test-1
-# #X_train sütunlarını tut
 cols=X_train.columns
 scaler=StandardScaler()
 X_train=scaler.fit_transform(X_train)
@@ -719,13 +706,13 @@ abc=AdaBoostClassifier(n_estimators=100,learning_rate=1,random_state=0)
 model_abc=abc.fit(X_train,y_train)
 y_pred_abc_proba=model_abc.predict_proba(X_test)
 # print('AdaBoost ROC-AUC score: {0:0.2f}'.format(roc_auc_score(y_test,y_pred_abc_proba,multi_class="ovr"))) #0,47
-# AdaBoost tahminlerinin ROC eğrisi
-fpr_abc, tpr_abc, _ = roc_curve(y_test, y_pred_abc_proba[:, 1], pos_label=1)  # ROC eğrisi için
-roc_auc_abc = auc(fpr_abc, tpr_abc)  # AUC hesabı
-# AdaBoost ve XGBoost'un ROC eğrilerini çizme
+# prediction of AdaBoost ROC liness
+fpr_abc, tpr_abc, _ = roc_curve(y_test, y_pred_abc_proba[:, 1], pos_label=1)
+roc_auc_abc = auc(fpr_abc, tpr_abc)  # calculation of AUC
+# plotting the AdaBoost and XGBoost ROC lines
 plt.figure(figsize=(10, 6))
 plt.plot(fpr_abc, tpr_abc, color='blue', lw=2, label=f'AdaBoost (AUC = {roc_auc_abc:.2f})')
-# Referans için 45 derecelik çizgi
+# for Referance 45 degrees line
 plt.plot([0, 1], [0, 1], color='gray', lw=1, linestyle='--', label='Random Guess')
 ########### xgboost ###########
 xgb=XGBClassifier(n_estimators=100,learning_rate=1,max_depth=3,random_state=0)
@@ -735,9 +722,7 @@ y_pred_xgb_proba=model_xgb.predict_proba(X_test)
 fpr_xgb, tpr_xgb, _ = roc_curve(y_test, y_pred_xgb_proba[:, 1], pos_label=1)  # ROC eğrisi için
 roc_auc_xgb = auc(fpr_xgb, tpr_xgb)  # AUC hesabı
 plt.plot(fpr_xgb, tpr_xgb, color='green', lw=2, label=f'XGBoost (AUC = {roc_auc_xgb:.2f})')
-# Referans için 45 derecelik çizgi
 plt.plot([0, 1], [0, 1], color='gray', lw=1, linestyle='--', label='Random Guess')
-# Grafik düzenlemeleri
 plt.title('AdaBoost ve XGBoost - ROC Eğrisi Karşılaştırması')
 plt.xlabel('False Positive Rate (Yanlış Pozitif Oranı)')
 plt.ylabel('True Positive Rate (Doğru Pozitif Oranı)')
