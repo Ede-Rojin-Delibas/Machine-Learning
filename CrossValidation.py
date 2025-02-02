@@ -23,16 +23,16 @@ print("The Input data's shape :{} and the target variable's shape:{}".format(X.s
 #for k=5 , k->n_split
 kf=KFold(n_splits=5,random_state=42,shuffle=True)
 cnt=1
-#split metodu  Train-Test olarak ayırmak için bize indeksleri döner.
-# for train_index,test_index in kf.split(X,y):
-#     print(f'Fold:{cnt},Train set:{len(train_index)},Test set:{len(test_index)}')
-#     cnt+=1
-#RMSE yi hesaplamak için  -(eksi) ile çarpacağız.
-#cross_val_score dan bize negatif gelecek
+#The split method returns indexes to split as Train-Test..
+for train_index,test_index in kf.split(X,y):
+    print(f'Fold:{cnt},Train set:{len(train_index)},Test set:{len(test_index)}')
+    cnt+=1
+#for calculating RMSE - will minus with negative (eksi).
+#It will return negative from cross_val_score
 def rmse(score):
     rmse=np.sqrt(-score)
     print(f'RMSE:{rmse}')
-#lineer regresyon modeli
+#lineer regression model
 score=cross_val_score(LinearRegression(),X,y,cv=kf,scoring="neg_mean_squared_error")
 # print(f'her bir fold için skor:{score}')
 # print(rmse(score.mean()))

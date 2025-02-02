@@ -7,19 +7,19 @@ df=pd.read_csv('20_Unsupervised_Learning/data/Mall_Customers.csv',index_col='Cus
 # print(df.head())
 # print(df.describe())
 # print(df.isnull().sum())
-#dublike(mükerrer) data kontrolü
+#dublike(mükerrer) data control
 df.drop_duplicates(inplace=True)
-#input olarak annual_income ve spending_score
+#for inputs annual_income and spending_score
 X=df.iloc[:,[2,3]].values
-#elbow metot ile optimum k yı bulma
+#find the optimum k with elbow method
 from sklearn.cluster import KMeans
 wcss=[]
 for i in range(1,11):
     kmeans=KMeans(n_clusters=i,init='k-means++',random_state=42)
     kmeans.fit(X)
-    #inertia_ bu model için wcss değerini döner
+    #inertia_ returns wcss for this model
     wcss.append((kmeans.inertia_))
-#wcss değeri
+#wcss
 plt.figure(figsize=(10,5))
 sns.lineplot(x=range(1,11),y=wcss,marker='o',color='red')
 plt.title('Elbow Method')
